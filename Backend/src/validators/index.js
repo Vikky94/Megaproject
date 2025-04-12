@@ -41,6 +41,9 @@ const userChangeCurrentPasswordValidator = () => {
   return [
     body("oldPassword").notEmpty().withMessage("Old password is required"),
     body("newPassword").notEmpty().withMessage("New password is required"),
+    body('confirmPassword').custom((value, { req }) => {
+      return value === req.body.newPassword;
+    }).withMessage('Passwords do not match')
   ];
 };
 
@@ -55,7 +58,12 @@ const userForgotPasswordValidator = () => {
 };
 
 const userResetForgottenPasswordValidator = () => {
-  return [body("newPassword").notEmpty().withMessage("Password is required")];
+  return [
+    body("newPassword").notEmpty().withMessage("Password is required"),
+    body('confirmPassword').custom((value, { req }) => {
+      return value === req.body.newPassword;
+    }).withMessage('Passwords do not match')
+  ];
 };
 
 const createProjectValidator = () => {

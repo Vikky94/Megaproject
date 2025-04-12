@@ -106,19 +106,30 @@ const forgotPasswordMailgenContent = (username, passwordResetUrl) => {
   };
 };
 
-const sendEmailVerificationMail = async (userData) => {
+const sendEmailFor = async (type, userData) => {
+  let emailObj;
   try {
-    const verificationUrl = `${process.env.BASE_URL}api/v1/auth/verify/${userData.hashedToken}`;
-    const registerEmailContent = emailVerificationMailgenContent(userData.username, verificationUrl);
-    const emailObj = {
-      mailgenContent: registerEmailContent,
-      email: userData.email,
-      subject: "Verify your email"
+    if (type === "emailVerfication") {
+      const verificationUrl = `${process.env.BASE_URL}api/v1/auth/verify-email/${userData.unHashedToken}`;
+      const registerEmailContent = emailVerificationMailgenContent(userData.username, verificationUrl);
+      emailObj = {
+        mailgenContent: registerEmailContent,
+        email: userData.email,
+        subject: "Verify your email"
+      }
+    } else if (type === "forgotPassword") {
+      const verificationUrl = `${process.env.BASE_URL}api/v1/auth/reset-password/${userData.unHashedToken}`;
+      const forgotPasswordEmailContent = forgotPasswordMailgenContent(userData.username, verificationUrl);
+      emailObj = {
+        mailgenContent: forgotPasswordEmailContent,
+        email: userData.email,
+        subject: "Forgot password"
+      }
     }
     await sendEmail(emailObj);
-    console.log("Verification Email Send Successfully");
-  }catch (error) {
-    console.error("Error while sending email verifiction email");
+    console.log(`${type} Email Send Successfully`);
+  } catch (error) {
+    console.error(`Error while sending email ${type} email`);
     console.error("Error: ", error);
   }
 };
@@ -127,5 +138,5 @@ export {
   emailVerificationMailgenContent,
   forgotPasswordMailgenContent,
   sendEmail,
-  sendEmailVerificationMail
+  sendEmailFor
 };

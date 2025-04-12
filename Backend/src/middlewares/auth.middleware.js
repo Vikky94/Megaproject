@@ -9,10 +9,10 @@ export const isLoggedIn = asyncHandler( async(req, res, next) => {
   console.log("Token Found: ", accessToken ? "YES" : "NO");
   if (!accessToken) {
     console.log("NO token");
-    return res.status(401).json(authErrorObj);
+    throw new authErrorObj;
   }
-
-  const decoded = await jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+  const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+  if( !decoded ) throw new authErrorObj;
   console.log("decoded data: ", decoded);
   req.user = decoded;
   next();
