@@ -166,9 +166,12 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
+  const {email, username} = req.user;
+  const isUserExist = await User.findOne({ $or : [ {email}, {username} ] }).select('-password');
+  if( !isUserExist )
+    throw new ApiError(400, 'User does not exist');
 
-  //validation
+  res.status(200).json(new ApiResponse(200, {user:isUserExist}));
 });
 
 export {
