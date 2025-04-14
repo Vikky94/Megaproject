@@ -83,6 +83,8 @@ const verifyEmail = asyncHandler(async (req, res) => {
   if (!isDataExist)
     throw new ApiError(400, 'Token is expired...');
 
+  isDataExist.emailVerificationToken = null;
+  isDataExist.emailVerificationExpiry = null;
   isDataExist.isEmailVerified = true;
   await isDataExist.save();
   res.status(200).json(new ApiResponse(200, "Your email has been successfully verified."));
@@ -120,14 +122,15 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
 
   if (!isDataExist) throw new ApiError(400, 'Token is expired...')
   isDataExist.password = newPassword;
+  isDataExist.forgotPasswordToken = null;
+  isDataExist.forgotPasswordExpiry = null;
   await isDataExist.save();
   res.status(200).json(new ApiResponse(200, "Password successfully changed."));
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const { email, username, password, role } = req.body;
-
-  //validation
+ console.log('reached in RefreshToken'+req.user_id);
+ 
 });
 
 const forgotPasswordRequest = asyncHandler(async (req, res) => {
