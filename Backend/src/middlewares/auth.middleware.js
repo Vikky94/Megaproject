@@ -3,16 +3,15 @@ import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
 
 export const isLoggedIn = asyncHandler( async(req, res, next) => {
-  const authErrorObj = new ApiError(401, "Authentication failed");
   console.log(req.cookies);
   let accessToken = req.cookies?.accessToken;
   console.log("Token Found: ", accessToken ? "YES" : "NO");
   if (!accessToken) {
     console.log("NO token");
-    throw new authErrorObj;
+    throw new ApiError(400, "Access token is missing.");
   }
   const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-  if( !decoded ) throw new authErrorObj;
+  if( !decoded ) throw new ApiError(401, "Authentication failed");
   console.log("decoded data: ", decoded);
   req.user = decoded;
   next();

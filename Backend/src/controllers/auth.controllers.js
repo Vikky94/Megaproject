@@ -30,7 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
     await createdUser.save();
     createdUser.unHashedToken = tokens.unHashedToken;
     await sendEmailFor("emailVerfication", createdUser);
-    res.status(200).json(new ApiResponse(200, "Registration successful! Welcome to MegaProject. You can now log in and start using our services. Please check your email and verify"));
+    res.status(200).json(new ApiResponse(200, "User registered successfully. Please check your email and verify."));
   }
 });
 
@@ -87,13 +87,13 @@ const verifyEmail = asyncHandler(async (req, res) => {
   isDataExist.emailVerificationExpiry = null;
   isDataExist.isEmailVerified = true;
   await isDataExist.save();
-  res.status(200).json(new ApiResponse(200, "Your email has been successfully verified."));
+  res.status(200).json(new ApiResponse(200, "Email verified successfully."));
 });
 
 const resendEmailVerification = asyncHandler(async (req, res) => {
   const { email, username } = req.user;
   const isUserExist = await User.findOne({ $or: [{ email }, { username }] }).select('-password');
-  if (!isUserExist) throw new ApiError(400, "User does not exist");
+  if (!isUserExist) throw new ApiError(400, "User not found.");
 
   const tokens = isUserExist.generateTemporaryToken();
   isUserExist.emailVerificationToken = tokens.hashedToken;
@@ -102,7 +102,7 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
   await isUserExist.save();
   isUserExist.unHashedToken = tokens.unHashedToken;
   await sendEmailFor("emailVerfication", isUserExist);
-  res.status(200).json(new ApiResponse(200, "Verification email sent successfully"));
+  res.status(200).json(new ApiResponse(200, "Verification email sent successfully."));
 });
 
 const resetForgottenPassword = asyncHandler(async (req, res) => {
@@ -135,7 +135,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid Refresh Token")
 
   const user = await User.findById(_id);
-  if (!user) throw new ApiError(401, "User Does not exist")
+  if (!user) throw new ApiError(401, "User not found.")
 
 
   const accessToken = user.generateAccessToken();
@@ -150,7 +150,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   res.cookie("accessToken", accessToken, cookieOptions);
   res.cookie("refreshToken", user.refreshToken, cookieOptions);
 
-  res.status(200).json(new ApiResponse(200,"Token are refreshed successfully") );
+  res.status(200).json(new ApiResponse(200,"Access token refreshed successfully.") );
 });
 
 const forgotPasswordRequest = asyncHandler(async (req, res) => {
@@ -158,7 +158,7 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   if (!email) throw new ApiError(400, "Invalid Email")
   const isUserExist = await User.findOne({ email: email });
   if (!isUserExist)
-    throw new ApiError(400, "User does not exist...")
+    throw new ApiError(400, "User not found....")
 
   const { unHashedToken, hashedToken, tokenExpiry } = isUserExist.generateTemporaryToken();
   isUserExist.forgotPasswordToken = hashedToken;
@@ -166,7 +166,7 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   await isUserExist.save();
   isUserExist.unHashedToken = unHashedToken;
   await sendEmailFor("forgotPassword", isUserExist);
-  res.status(200).json(new ApiResponse(200, "Password reset email has been sent. Please check your inbox."));
+  res.status(200).json(new ApiResponse(200, "Password reset link sent to your email."));
 
 });
 
@@ -179,20 +179,20 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
   const isUserExist = await User.findOne({ $or: [{ email }, { username }] });
   if (!isUserExist)
-    throw new ApiError(400, 'User does not exist')
+    throw new ApiError(400, 'User not found.')
   const isPasswordCorrect = await isUserExist.isPasswordCorrect(oldPassword);
   if (!isPasswordCorrect) throw new ApiError(400, 'Old Password is not correct');
 
   isUserExist.password = newPassword;
   await isUserExist.save();
-  res.status(200).json(new ApiResponse(200, "Password successfully changed."))
+  res.status(200).json(new ApiResponse(200, "Password reset successfully."))
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   const { email, username } = req.user;
   const isUserExist = await User.findOne({ $or: [{ email }, { username }] }).select('-password');
   if (!isUserExist)
-    throw new ApiError(400, 'User does not exist');
+    throw new ApiError(400, 'User not found.');
 
   res.status(200).json(new ApiResponse(200, { user: isUserExist }));
 });
