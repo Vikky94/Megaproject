@@ -129,8 +129,28 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
- console.log('reached in RefreshToken'+req.user_id);
- 
+  console.log('reached in RefreshToken' + req.user);
+  const { _id } = req.user;
+  if (!_id)
+    throw new ApiError(401, "Invalid Refresh Token")
+
+  const user = await User.findById(_id);
+  if (!user) throw new ApiError(401, "User Does not exist")
+
+
+  const accessToken = user.generateAccessToken();
+  user.refreshToken = user.generateRefreshToken();
+  await user.save();
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    maxAge: process.env.JWT_COOKIE_EXPIRY
+  };
+  res.cookie("accessToken", accessToken, cookieOptions);
+  res.cookie("refreshToken", user.refreshToken, cookieOptions);
+
+  res.status(200).json(new ApiResponse(200,"Token are refreshed successfully") );
 });
 
 const forgotPasswordRequest = asyncHandler(async (req, res) => {
@@ -152,16 +172,16 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
-  const {email, username} = req.user;
+  const { email, username } = req.user;
 
-  if( oldPassword && newPassword !==  confirmPassword)
+  if (oldPassword && newPassword !== confirmPassword)
     throw new ApiError(400, 'Password does not match')
-  
-  const isUserExist = await User.findOne({ $or : [ {email}, {username} ] });
-  if( !isUserExist )
+
+  const isUserExist = await User.findOne({ $or: [{ email }, { username }] });
+  if (!isUserExist)
     throw new ApiError(400, 'User does not exist')
   const isPasswordCorrect = await isUserExist.isPasswordCorrect(oldPassword);
-  if( !isPasswordCorrect ) throw new ApiError(400, 'Old Password is not correct');
+  if (!isPasswordCorrect) throw new ApiError(400, 'Old Password is not correct');
 
   isUserExist.password = newPassword;
   await isUserExist.save();
@@ -169,12 +189,12 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const {email, username} = req.user;
-  const isUserExist = await User.findOne({ $or : [ {email}, {username} ] }).select('-password');
-  if( !isUserExist )
+  const { email, username } = req.user;
+  const isUserExist = await User.findOne({ $or: [{ email }, { username }] }).select('-password');
+  if (!isUserExist)
     throw new ApiError(400, 'User does not exist');
 
-  res.status(200).json(new ApiResponse(200, {user:isUserExist}));
+  res.status(200).json(new ApiResponse(200, { user: isUserExist }));
 });
 
 export {

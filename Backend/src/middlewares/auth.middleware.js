@@ -27,9 +27,9 @@ export const validateRefreshToken = asyncHandler( async(req, res, next) => {
     console.log("NO token");
     throw new authErrorObj;
   }
-  const decoded = jwt.verify(accessToken, process.env.REFRESH_TOKEN_SECRET);
+  const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
   if( !decoded ) throw new authErrorObj;
   console.log("decoded data: ", decoded);
-  req.user_id = decoded;
+  req.user = decoded;
   next();
 })
