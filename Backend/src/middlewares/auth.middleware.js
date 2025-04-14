@@ -10,11 +10,17 @@ export const isLoggedIn = asyncHandler( async(req, res, next) => {
     console.log("NO token");
     throw new ApiError(400, "Access token is missing.");
   }
-  const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-  if( !decoded ) throw new ApiError(401, "Authentication failed");
-  console.log("decoded data: ", decoded);
-  req.user = decoded;
-  next();
+  try {
+    const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+    if( !decoded ) throw new ApiError(401, "Authentication failed");
+    console.log("decoded data: ", decoded);
+    req.user = decoded;
+    next();
+  } catch(err) {
+    // console.log('Error while decoding accessToken', err);
+    throw new ApiError(401, "Invalid or expired token.");
+  }
+  
 })
 
 export const validateRefreshToken = asyncHandler( async(req, res, next) => {

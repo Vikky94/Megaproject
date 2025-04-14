@@ -43,24 +43,22 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid Credntials...");
 
   const match = await bcrypt.compare(password, user.password);
-  if (match) {
-    const accessToken = user.generateAccessToken();
-    user.refreshToken = user.generateRefreshToken();
-    user.save();
+  if (!match) throw new ApiError(400, "Invalid Credntials...");
+  const accessToken = user.generateAccessToken();
+  user.refreshToken = user.generateRefreshToken();
+  await user.save();
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: true,
-      maxAge: process.env.JWT_COOKIE_EXPIRY
-    };
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", user.refreshToken, cookieOptions);
-    const { _id, avatar, username, email, isEmailVerified, emailVerificationExpiry, emailVerificationToken, refreshToken } = user;
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    maxAge: process.env.JWT_COOKIE_EXPIRY
+  };
+  res.cookie("accessToken", accessToken, cookieOptions);
+  res.cookie("refreshToken", user.refreshToken, cookieOptions);
+  const { _id, avatar,isEmailVerified, emailVerificationExpiry, emailVerificationToken, refreshToken } = user;
 
-    res.status(200).json(
-      new ApiResponse(200, { "user": { _id, avatar, username, email, isEmailVerified, emailVerificationExpiry, emailVerificationToken, refreshToken, accessToken } }, "Login successful"));
-  }
-  throw new ApiError(400, "Invalid Credntials...");
+  res.status(200).json(
+    new ApiResponse(200, { "user": { _id, avatar, username, email, isEmailVerified, emailVerificationExpiry, emailVerificationToken, refreshToken, accessToken } }, "Login successful"));
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
@@ -129,7 +127,7 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  console.log('reached in RefreshToken' + req.user);
+  console.log('reached in RefreshToken');
   const { _id } = req.user;
   if (!_id)
     throw new ApiError(401, "Invalid Refresh Token")
@@ -150,7 +148,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   res.cookie("accessToken", accessToken, cookieOptions);
   res.cookie("refreshToken", user.refreshToken, cookieOptions);
 
-  res.status(200).json(new ApiResponse(200,"Access token refreshed successfully.") );
+  res.status(200).json(new ApiResponse(200, "Access token refreshed successfully."));
 });
 
 const forgotPasswordRequest = asyncHandler(async (req, res) => {
