@@ -20,4 +20,8 @@ const projectSchema = new Schema(
   { timestamps: true },
 );
 
+projectSchema.statics.findProjectByCondition = function (condition) {
+  return this.find(condition);
+};
+
 export const Project = mongoose.model("Project", projectSchema);
