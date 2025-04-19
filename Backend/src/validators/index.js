@@ -72,8 +72,20 @@ const createProjectValidator = () => {
     body("description").optional(),
   ];
 };
+const updateProjectValidator = () => {
+  return [
+    body("projectId").notEmpty().withMessage("Project Id is required"),
+    body("name").notEmpty().withMessage("Name is required"),
+    body("description").optional()
+  ];
+};
+
 const addMemberToProjectValidator = () => {
   return [
+    body("projectId")
+    .trim()
+    .notEmpty()
+    .withMessage("projectId is required"),
     body("email")
       .trim()
       .notEmpty()
@@ -128,4 +140,5 @@ export {
   userLoginValidator,
   userRegistrationValidator,
   userResetForgottenPasswordValidator,
+  updateProjectValidator
 };
