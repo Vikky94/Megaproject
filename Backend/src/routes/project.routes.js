@@ -9,15 +9,14 @@ const router = Router()
 router.post('/create-project', isLoggedIn, createProjectValidator(), validate, createProject);
 router.get('/get-projects', isLoggedIn, getProjects);
 router.get('/get-project/:projectId', isLoggedIn, getProjectById);
-router.post('/update-project', isLoggedIn, updateProjectValidator(), validate, updateProject);
-router.get('/delete-project/:projectId', isLoggedIn, deleteProject);
+router.patch('/update-project', isLoggedIn, updateProjectValidator(), validate, updateProject);
+router.delete('/delete-project/:projectId', isLoggedIn, deleteProject);
 
 router.get('/get-users', isLoggedIn, getUsers);
 router.get('/get-project-members/:projectId', isLoggedIn, getProjectMembers);
 router.post('/add-project-member', isLoggedIn, addMemberToProjectValidator(), validate, addMemberToProject);
-router.get('/delete-member/:projectId/:memberId', isLoggedIn, deleteMember);
-router.post('/update-member-role', isLoggedIn, updateMemberRole)
-    .patch('/update-member-role', isLoggedIn, updateMemberRole);
+router.delete('/delete-member/:projectId/:memberId', isLoggedIn, deleteMember);
+router.patch('/update-member-role', isLoggedIn, updateMemberRole);
 
 
 

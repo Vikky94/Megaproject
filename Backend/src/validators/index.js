@@ -74,7 +74,7 @@ const createProjectValidator = () => {
 };
 const updateProjectValidator = () => {
   return [
-    body("projectId").notEmpty().withMessage("Project Id is required"),
+    body("_id").notEmpty().withMessage("Project Id is required"),
     body("name").notEmpty().withMessage("Name is required"),
     body("description").optional()
   ];
@@ -125,6 +125,12 @@ const updateTaskValidator = () => {
   ];
 };
 
+const subTaskValidator = () => {
+  return [
+    body("title").notEmpty().withMessage("Title is required")
+  ];
+};
+
 const notesValidator = () => {
   return [body("content").notEmpty().withMessage("Content is required")];
 };
@@ -140,5 +146,6 @@ export {
   userLoginValidator,
   userRegistrationValidator,
   userResetForgottenPasswordValidator,
-  updateProjectValidator
+  updateProjectValidator,
+  subTaskValidator
 };

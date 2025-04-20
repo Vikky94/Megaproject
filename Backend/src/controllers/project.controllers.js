@@ -6,6 +6,7 @@ import { ApiError } from "../utils/api-error.js";
 import { ProjectMember } from "../models/projectmember.models.js"
 import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
 
+
 const getProjects = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const allProjects = await Project.find({ createdBy: _id });
@@ -16,7 +17,7 @@ const getProjectById = asyncHandler(async (req, res) => {
   if (!req.params.projectId) throw new ApiError(400, "Project id is required")
 
   const projectData = await Project.find({ _id: req.params.projectId });
-  res.status(200).json(new ApiResponse(200, { project: projectData }, "Projects fetched successfully"))
+  res.status(200).json(new ApiResponse(200, { project: projectData.length ? projectData[0] :{}  }, "Projects fetched successfully"))
 });
 
 const createProject = asyncHandler(async (req, res) => {
@@ -26,19 +27,20 @@ const createProject = asyncHandler(async (req, res) => {
   if (isProjectAlreadyExist.length) throw new ApiError(400, "Project name already exist");
 
   const isProjectCreated = await Project.create({ name, description, createdBy: req.user._id });
-  if (!isProjectCreated) throw new ApiError(400, "Project not added");
+  if (!isProjectCreated) throw new ApiError(400, "Failed to add project");
 
+  await ProjectMember.create({user: req.user._id, project: isProjectCreated._id, role: UserRolesEnum.PROJECT_ADMIN});
   res.status(200).json(new ApiResponse(201, "Project added successfully"));
 });
 
 const updateProject = asyncHandler(async (req, res) => {
-  const { projectId, name, description } = req.body;
-  if (!projectId) throw new ApiError(400, "Project Id is required");
+  const { _id, name, description } = req.body;
+  if (!_id) throw new ApiError(400, "Project Id is required");
   if (!name) throw new ApiError(400, "Project Name is required");
 
-  const isProjectAlreadyExist = await Project.findProjectByCondition({ $and: [{ name }, { createdBy: req.user._id }, { _id: { $ne: projectId } }] });
+  const isProjectAlreadyExist = await Project.findProjectByCondition({ $and: [{ name }, { createdBy: req.user._id }, { _id: { $ne: _id } }] });
   if (isProjectAlreadyExist.length) throw new ApiError(400, "Project name already exist");
-  const isProjectUpdated = await Project.updateOne({ projectId }, { name, description });
+  const isProjectUpdated = await Project.updateOne({ _id }, { name, description });
   if (!isProjectUpdated) throw new ApiError(400, "Project update failed");
   res.status(200).json(new ApiResponse(200, "Project updated successfully"));
 });
@@ -90,7 +92,7 @@ const deleteMember = asyncHandler(async (req, res) => {
 
  const isMemberDeleted = await ProjectMember.deleteOne({project: projectId, user:memberId});
  if( !isMemberDeleted ) throw new ApiError(400, "Failed to delete project member");
- res.status(200).json(new ApiResponse(200, "Project member delete successfully"));
+ res.status(200).json(new ApiResponse(200, "Project member removed successfully"));
 
 });
 
