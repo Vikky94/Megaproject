@@ -30,7 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
     await createdUser.save();
     createdUser.unHashedToken = tokens.unHashedToken;
     await sendEmailFor("emailVerfication", createdUser);
-    res.status(200).json(new ApiResponse(200, "User registered successfully. Please check your email and verify."));
+    res.status(201).json(new ApiResponse(201, "User registered successfully. Please check your email and verify."));
   }
 });
 

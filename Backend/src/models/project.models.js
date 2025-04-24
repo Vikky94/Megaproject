@@ -25,9 +25,9 @@ projectSchema.statics.findProjectByCondition = function (condition) {
 };
 projectSchema.statics.getProjectDetails = function (createdBy, _id) {
   const createdByObjId = new mongoose.Types.ObjectId(createdBy),
-        object_Id = new mongoose.Types.ObjectId(_id);
-  let conditionObj = {createdBy : createdByObjId};
-  if( _id ) conditionObj['_id'] = object_Id;
+    object_Id = new mongoose.Types.ObjectId(_id);
+  let conditionObj = { createdBy: createdByObjId };
+  if (_id) conditionObj['_id'] = object_Id;
 
   return this.aggregate([
     {
@@ -87,6 +87,100 @@ projectSchema.statics.getProjectDetails = function (createdBy, _id) {
             userDetails: "$userDetails"
           }
         }
+      }
+    }
+  ])
+}
+
+projectSchema.statics.getProjectTasksById = function (_id) {
+  const userSelectFeilds = {
+    _id: 1,
+    avatar: 1,
+    email: 1,
+    isEmailVerified: 1
+  };
+
+  return this.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(_id)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "createdBy",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $project: userSelectFeilds
+          }
+        ],
+        as: "createdBy"
+      }
+    },
+    {
+      $unwind: "$createdBy"
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        createdBy: 1
+      }
+    },
+    {
+      $lookup: {
+        from: "tasks",
+        localField: "_id",
+        foreignField: "project",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              title: 1,
+              description: 1,
+              assignedTo: 1,
+              assignedBy: 1,
+              status: 1,
+              attachments: 1
+            }
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "assignedTo",
+              foreignField: "_id",
+              pipeline: [
+                {
+                  $project: userSelectFeilds
+                }
+              ],
+              as: "assignedTo"
+            }
+          },
+          {
+            $unwind: "$assignedTo"
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "assignedBy",
+              foreignField: "_id",
+              pipeline: [
+                {
+                  $project: userSelectFeilds
+                }
+              ],
+              as: "assignedBy"
+            }
+          },
+          {
+            $unwind: "$assignedBy"
+          }
+        ],
+        as: "projectTasks"
       }
     }
   ])

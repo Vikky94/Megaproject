@@ -80,7 +80,7 @@ const addMemberToProject = asyncHandler(async (req, res) => {
   const obj = { user: userId, project: projectId, role: role }
   const isMemberAdded = await ProjectMember.create(obj);
   if( !isMemberAdded ) throw new ApiError(400, "Failed to add project member");
-  res.status(200).json(new ApiResponse(201, "Project member added successfully"));
+  res.status(201).json(new ApiResponse(201, "Project member added successfully"));
 });
 
 const deleteMember = asyncHandler(async (req, res) => {

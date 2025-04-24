@@ -4,16 +4,19 @@ import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { TaskStatusEnum } from "../utils/constants.js";
 import { SubTask } from "../models/subtask.models.js";
+import { Project } from "../models/project.models.js";
+
 
 const getTasks = asyncHandler(async (req, res) => {
   if (!req.params.projectId) throw new ApiError(400, "ProjectId is required");
-  const tasksData = await Task.find({ project: req.params.projectId });
+  // const tasksData = await Task.getTaskDetails(req.params.projectId);
+  const tasksData = await Project.getProjectTasksById(req.params.projectId);
   res.status(200).json(new ApiResponse(200, { tasks: tasksData }, "Tasks fetched successfully"));
 });
 
 const getTaskById = asyncHandler(async (req, res) => {
   if (!req.params.taskId) throw new ApiError(400, "TaskId is required");
-  const taskData = await Task.findById(req.params.taskId);
+  const taskData = await Task.getTaskDetails(null,req.params.taskId);
   res.status(200).json(new ApiResponse(200, { task: taskData }, "Tasks fetched successfully"));
 });
 
@@ -27,7 +30,7 @@ const createTask = asyncHandler(async (req, res) => {
 
   const isTaskCreated = await Task.create(createTaskObj);
   if( !isTaskCreated ) throw new ApiError(400, "Failed to add task")
-  res.status(200).json(new ApiResponse(200, "Tasks added successfully"));
+  res.status(201).json(new ApiResponse(201, "Tasks added successfully"));
 });
 
 
@@ -53,6 +56,11 @@ const deleteTask = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, "Tasks deleted successfully"));
 });
 
+const getSubTasks = asyncHandler(async (req, res) => {
+  const subTasks = await Task.getSubTask(req.params.taskId);
+  res.status(200).json(new ApiResponse(200, { subTasks: subTasks }, "subTasks fetched successfully"));
+});
+
 const createSubTask = asyncHandler(async (req, res) => {
   const taskId = req.params.taskId,
   {title, isCompleted} = req.body,
@@ -64,7 +72,7 @@ const createSubTask = asyncHandler(async (req, res) => {
   const isSubTaskCreated = await SubTask.create({title, isCompleted ,task:taskId,createdBy});
   if( !isSubTaskCreated ) throw new ApiError(400, "Failed to add subtask");
 
-  res.status(200).json(new ApiResponse(200, "Subtask added successfully"))
+  res.status(201).json(new ApiResponse(201, "Subtask added successfully"))
 });
 
 
@@ -73,7 +81,7 @@ const updateSubTask = asyncHandler(async (req, res) => {
   createdBy = req.user._id;
 
   const isSubTaskExist = await SubTask.findOne({ $and: [{title}, {task}, {createdBy}, { _id : {$ne : _id} }] });
-  if( !isSubTaskExist )  throw new ApiError(404, "Sub already exist");
+  if( isSubTaskExist )  throw new ApiError(404, "Sub already exist");
 
   const isSubTaskUpdated = await SubTask.updateOne({_id}, {title, isCompleted ,task,createdBy});
   if( !isSubTaskUpdated ) throw new ApiError(400, "Failed to update subtask");
@@ -95,4 +103,5 @@ export {
   getTasks,
   updateSubTask,
   updateTask,
+  getSubTasks
 };
