@@ -20,6 +20,37 @@ const projectMemberSchema = new Schema(
   },
   { timestamps: true },
 );
+projectMemberSchema.statics.getProjectMembers = function (project) {
+  const projectObjId = new mongoose.Types.ObjectId(project);
+  return this.aggregate([
+    {
+      $match: {
+        project: projectObjId
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              username: 1,
+              email: 1,
+              isEmailVerified: 1
+            }
+          }
+        ],
+        as: "userDetails"
+      }
+    },
+    {
+      $unwind: "$userDetails"
+    }
+  ])
+}
 
 export const ProjectMember = mongoose.model(
   "ProjectMember",

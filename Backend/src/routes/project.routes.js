@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createProject, getProjects, getProjectById, updateProject, deleteProject, getProjectMembers, addMemberToProject, getUsers, deleteMember, updateMemberRole } from '../controllers/project.controllers.js'
+import { createProject, getProjects, getProjectById, updateProject, deleteProject, getProjectMembers, addMemberToProject, getMembers, deleteMember, updateMemberRole } from '../controllers/project.controllers.js'
 import { isLoggedIn } from '../middlewares/auth.middleware.js'
 import { validate } from "../middlewares/validator.middleware.js";
 import { createProjectValidator, updateProjectValidator, addMemberToProjectValidator } from "../validators/index.js";
@@ -12,7 +12,7 @@ router.get('/get-project/:projectId', isLoggedIn, getProjectById);
 router.patch('/update-project', isLoggedIn, updateProjectValidator(), validate, updateProject);
 router.delete('/delete-project/:projectId', isLoggedIn, deleteProject);
 
-router.get('/get-users', isLoggedIn, getUsers);
+router.get('/get-members', isLoggedIn, getMembers);
 router.get('/get-project-members/:projectId', isLoggedIn, getProjectMembers);
 router.post('/add-project-member', isLoggedIn, addMemberToProjectValidator(), validate, addMemberToProject);
 router.delete('/delete-member/:projectId/:memberId', isLoggedIn, deleteMember);

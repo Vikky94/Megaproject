@@ -9,14 +9,13 @@ import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
 
 const getProjects = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  const allProjects = await Project.find({ createdBy: _id });
+  const allProjects = await Project.getProjectDetails(_id);
   res.status(200).json(new ApiResponse(200, { projects: allProjects }, "Projects fetched successfully"))
 });
 
 const getProjectById = asyncHandler(async (req, res) => {
   if (!req.params.projectId) throw new ApiError(400, "Project id is required")
-
-  const projectData = await Project.find({ _id: req.params.projectId });
+  const projectData = await Project.getProjectDetails(req.user._id, req.params.projectId)
   res.status(200).json(new ApiResponse(200, { project: projectData.length ? projectData[0] :{}  }, "Projects fetched successfully"))
 });
 
@@ -30,7 +29,7 @@ const createProject = asyncHandler(async (req, res) => {
   if (!isProjectCreated) throw new ApiError(400, "Failed to add project");
 
   await ProjectMember.create({user: req.user._id, project: isProjectCreated._id, role: UserRolesEnum.PROJECT_ADMIN});
-  res.status(200).json(new ApiResponse(201, "Project added successfully"));
+  res.status(201).json(new ApiResponse(201, "Project added successfully"));
 });
 
 const updateProject = asyncHandler(async (req, res) => {
@@ -40,6 +39,7 @@ const updateProject = asyncHandler(async (req, res) => {
 
   const isProjectAlreadyExist = await Project.findProjectByCondition({ $and: [{ name }, { createdBy: req.user._id }, { _id: { $ne: _id } }] });
   if (isProjectAlreadyExist.length) throw new ApiError(400, "Project name already exist");
+
   const isProjectUpdated = await Project.updateOne({ _id }, { name, description });
   if (!isProjectUpdated) throw new ApiError(400, "Project update failed");
   res.status(200).json(new ApiResponse(200, "Project updated successfully"));
@@ -58,12 +58,12 @@ const getProjectMembers = asyncHandler(async (req, res) => {
   if (!req.params.projectId) throw new ApiError(400, "Project id is required");
   const isProjectExist = await Project.findProjectByCondition({ _id :req.params.projectId });
   if (!isProjectExist) throw new ApiError(400, "Project does not exist");
-  const projectMembers = await ProjectMember.find({project: req.params.projectId});
+  const projectMembers = await ProjectMember.getProjectMembers(req.params.projectId);
   res.status(200).json( new ApiResponse(200,{ projectMembers : projectMembers }, "Project members fetched successfully") );
 });
 
-const getUsers = asyncHandler(async (req, res) => {
-  const allUsers = await User.find().select(['avatar', 'username', 'email','isEmailVerified']);
+const getMembers = asyncHandler(async (req, res) => {
+  const allUsers = await User.find({ _id : { $ne : req.user._id} }).select(['_id','avatar', 'username', 'email','isEmailVerified']);
   res.status(200).json( new ApiResponse(200,{ users : allUsers }, "Users fetched successfully") );
 });
 
@@ -126,5 +126,5 @@ export {
   getProjects,
   updateMemberRole,
   updateProject,
-  getUsers
+  getMembers
 };
