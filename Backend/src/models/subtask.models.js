@@ -20,6 +20,38 @@ const subtaskSchema = new Schema({
         ref: "User",
         required: true
     }
-}, {timestamps: true});
+}, { timestamps: true });
+
+subtaskSchema.statics.getSubTaskDetails = function (_id) {
+    return this.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(_id)
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "createdBy",
+                foreignField: "_id",
+                pipeline: [
+                    {
+                        $project: {
+                            avatar: 1,
+                            username: 1,
+                            email: 1,
+                            isEmailVerified: 1
+                        }
+                    }
+                ],
+                as: "createdBy"
+            }
+        },
+        {
+            $unwind: "$createdBy"
+        },
+        { $limit: 1 }
+    ])
+}
 
 export const SubTask = mongoose.model("SubTask", subtaskSchema);

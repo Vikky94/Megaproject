@@ -61,6 +61,11 @@ const getSubTasks = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { subTasks: subTasks }, "subTasks fetched successfully"));
 });
 
+const getSubTaskById = asyncHandler(async (req, res) => {
+  const subTask = await SubTask.getSubTaskDetails(req.params.subTaskId);
+  res.status(200).json(new ApiResponse(200, { subTask: subTask.length ? subTask[0]:{}   }, "subTask Details fetched successfully"));
+});
+
 const createSubTask = asyncHandler(async (req, res) => {
   const taskId = req.params.taskId,
   {title, isCompleted} = req.body,
@@ -103,5 +108,6 @@ export {
   getTasks,
   updateSubTask,
   updateTask,
-  getSubTasks
+  getSubTasks,
+  getSubTaskById
 };
